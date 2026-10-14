@@ -23,9 +23,13 @@ import {
   Download,
   Droplets,
   Egg,
+  Eye,
   Filter,
+  Globe,
   Handshake,
   HeartPulse,
+  Info,
+  KeyRound,
   Leaf,
   LogOut,
   Mail,
@@ -35,10 +39,13 @@ import {
   MessageSquareText,
   Milk,
   Package,
+  Palette,
   Pencil,
   Phone,
   Pill,
   Plus,
+  RotateCcw,
+  Ruler,
   Search,
   Settings,
   ShieldCheck,
@@ -53,6 +60,7 @@ import {
   Truck,
   UserRound,
   Users,
+  Warehouse,
   Wheat,
   Wrench,
   X,
@@ -613,7 +621,17 @@ export default function FarmerDashboard({ email }: FarmerDashboardProps) {
   const [recordsError, setRecordsError] = useState('');
   const [profileName, setProfileName] = useState(email.split('@')[0].replace(/[._-]/g, ' ') || 'Farmer');
   const [farmLocation, setFarmLocation] = useState('Kericho County');
+  const [farmName, setFarmName] = useState('Olerai Ranch');
+  const [profilePhone, setProfilePhone] = useState('');
+  const [primarySpecies, setPrimarySpecies] = useState('Cattle');
+  const [profileBio, setProfileBio] = useState('');
   const [notifications, setNotifications] = useState({ vaccination: true, market: true, report: true, weather: false });
+  const [language, setLanguage] = useState('English');
+  const [currency, setCurrency] = useState('KSh');
+  const [units, setUnits] = useState({ milk: 'Litres', weight: 'Kilograms (kg)' });
+  const [appearance, setAppearance] = useState({ density: 'Comfortable', reduceMotion: false });
+  const [privacy, setPrivacy] = useState({ publicProfile: true, shareAggregate: false });
+  const [dataSharing, setDataSharing] = useState(true);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [milkPeriod, setMilkPeriod] = useState<'daily' | 'weekly' | 'yearly'>('daily');
   const displayName = profileName.split(' ').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
@@ -812,10 +830,13 @@ export default function FarmerDashboard({ email }: FarmerDashboardProps) {
 
   const handleSaveProfile = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    setProfileName(String(formData.get('name') ?? '').trim() || 'Farmer');
-    setFarmLocation(String(formData.get('location') ?? '').trim() || 'Location not set');
-    notify('Profile updated for this session preview.');
+    setProfileName(profileName.trim() || 'Farmer');
+    setFarmName(farmName.trim());
+    setFarmLocation(farmLocation.trim() || 'Location not set');
+    setProfilePhone(profilePhone.trim());
+    setPrimarySpecies(primarySpecies);
+    setProfileBio(profileBio.trim());
+    notify('Profile saved for this session.');
   };
 
   const handleSearchKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -1600,30 +1621,335 @@ export default function FarmerDashboard({ email }: FarmerDashboardProps) {
     </>
   );
 
-  const renderProfile = () => (
-    <>
-      <SectionHeading eyebrow="ACCOUNT / PROFILE" title="My profile" description="Edit your preview profile details." />
-      <form onSubmit={handleSaveProfile} className="grid gap-4 xl:grid-cols-2">
-        <Panel title="Personal information" icon={UserRound}><Field label="Full name" name="name" defaultValue={displayName} /><Field label="Email address" name="email" type="email" defaultValue={email} readOnly /><Field label="Farm location" name="location" defaultValue={farmLocation} /><Field label="Herd size" name="herdSize" defaultValue={`${animals.length} sample animals`} readOnly /><button className="mt-2 min-h-10 rounded-md bg-[#34D399] px-4 text-sm font-bold text-[#07150F]" type="submit">Save preview profile</button></Panel>
-        <Panel title="Workspace access" icon={ShieldCheck}><div className="rounded-md border border-[#34D399]/20 bg-[#34D399]/5 p-4"><p className="text-sm font-bold text-[#E7EFEA]">Farmer workspace</p><p className="mt-1 text-xs text-[#9AA9A0]">Role switching and multi-role billing will connect after role configuration.</p></div><Link href="/portal#workspaces" className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-md border border-[#2A4033] px-3 text-xs font-semibold text-[#D3DED7] hover:border-[#34D399]">Manage roles <ArrowRight className="size-3" /></Link></Panel>
-      </form>
-    </>
-  );
+  const renderProfile = () => {
+    const initials = displayName.split(' ').filter(Boolean).slice(0, 2).map(part => part.charAt(0)).join('').toUpperCase() || 'F';
+    const profileStats: { label: string; value: string; detail: string; icon: LucideIcon; tone: 'green' | 'amber' | 'cyan' | 'blue' }[] = [
+      { label: 'Herd size', value: String(animals.length), detail: animals.length === 1 ? 'animal saved' : 'animals saved', icon: Beef, tone: 'green' },
+      { label: 'Healthy', value: String(healthyCount), detail: 'current status', icon: HeartPulse, tone: 'cyan' },
+      { label: 'Milk today', value: milkToday ? `${milkToday} L` : '0 L', detail: milkToday ? 'production logged' : 'nothing logged yet', icon: Milk, tone: 'blue' },
+      { label: 'Listings', value: String(myListings.length), detail: myListings.length === 1 ? 'active listing' : 'active listings', icon: ShoppingBag, tone: 'amber' },
+    ];
+    const toneRing: Record<'green' | 'amber' | 'cyan' | 'blue', string> = {
+      green: 'border-[#34D399]/25 bg-[#34D399]/10 text-[#6EE7B7]',
+      amber: 'border-[#FBBF24]/25 bg-[#FBBF24]/10 text-[#FCD34D]',
+      cyan: 'border-[#22D3EE]/25 bg-[#22D3EE]/10 text-[#67E8F9]',
+      blue: 'border-[#60A5FA]/25 bg-[#60A5FA]/10 text-[#93C5FD]',
+    };
 
-  const renderSettings = () => (
-    <>
-      <SectionHeading eyebrow="ACCOUNT / PREFERENCES" title="Settings" description="Manage preview preferences. Notification delivery is not connected yet." />
-      <div className="grid gap-4 xl:grid-cols-2">
-        <Panel title="Notifications" icon={Bell}>{([
-          ['vaccination', 'Vaccination reminders', 'Get a reminder when herd care is due.'],
-          ['market', 'Marketplace inquiries', 'Be notified about buyer activity.'],
-          ['report', 'Weekly farm summary', 'Receive a weekly productivity recap.'],
-          ['weather', 'Weather alerts', 'See local forecast notices.'],
-        ] as const).map(([key, title, note]) => <ToggleRow key={key} title={title} note={note} checked={notifications[key]} onChange={checked => setNotifications(current => ({ ...current, [key]: checked }))} />)}</Panel>
-        <Panel title="Language & region" icon={SlidersHorizontal}><label className="mb-4 block text-xs font-semibold text-[#C4D0C9]">Language<select className="mt-2 h-11 w-full rounded-md border border-[#2A4033] bg-[#0B1511] px-3 text-sm text-[#E7EFEA]"><option>English</option><option>Kiswahili</option></select></label><label className="block text-xs font-semibold text-[#C4D0C9]">Currency<select className="mt-2 h-11 w-full rounded-md border border-[#2A4033] bg-[#0B1511] px-3 text-sm text-[#E7EFEA]"><option>Kenyan Shilling (KSh)</option></select></label></Panel>
-      </div>
-    </>
-  );
+    const profileFields = [
+      { filled: profileName.trim().length > 0 && profileName.trim().toLowerCase() !== 'farmer', label: 'Full name' },
+      { filled: profilePhone.replace(/\D/g, '').length >= 9, label: 'Phone number' },
+      { filled: farmName.trim().length > 0, label: 'Farm / ranch name' },
+      { filled: farmLocation.trim().length > 0 && farmLocation !== 'Location not set', label: 'County / location' },
+      { filled: primarySpecies.trim().length > 0, label: 'Primary livestock' },
+      { filled: profileBio.trim().length > 0, label: 'About your farm' },
+    ];
+    const profileCompletion = Math.round((profileFields.filter(field => field.filled).length / profileFields.length) * 100);
+    const nextMissing = profileFields.find(field => !field.filled)?.label;
+
+    return (
+      <>
+        <SectionHeading
+          eyebrow="ACCOUNT / PROFILE"
+          title="My profile"
+          description="Manage how you appear across your ranch workspace. Changes update this session preview."
+          action={
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#34D399]/30 bg-[#34D399]/[0.07] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#6EE7B7]">
+              <Sparkles className="size-3.5" /> Farmer workspace
+            </span>
+          }
+        />
+
+        {/* Hero identity card */}
+        <section className="relative mb-4 overflow-hidden rounded-lg border border-[#24372D] bg-gradient-to-br from-[#0F2A1E] via-[#0E2019] to-[#0B1511] p-5 sm:p-7">
+          <span aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 size-56 rounded-full bg-[#34D399]/10 blur-3xl" />
+          <span aria-hidden="true" className="pointer-events-none absolute -bottom-24 left-1/3 size-56 rounded-full bg-[#22D3EE]/[0.07] blur-3xl" />
+          <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-4">
+              <div className="relative shrink-0">
+                <div className="flex size-20 items-center justify-center rounded-full bg-gradient-to-br from-[#34D399] to-[#0E9F6E] text-2xl font-black text-[#07150F] shadow-lg shadow-[#34D399]/20 ring-4 ring-[#34D399]/15 sm:size-24 sm:text-3xl">
+                  {initials}
+                </div>
+                <span className="absolute -bottom-1 -right-1 flex size-7 items-center justify-center rounded-full border-2 border-[#0E2019] bg-[#34D399] text-[#07150F]">
+                  <Check className="size-3.5" />
+                </span>
+              </div>
+              <div className="min-w-0">
+                <div className="mb-1.5 flex flex-wrap items-center gap-2">
+                  <h2 className="truncate text-xl font-bold text-[#F0F5F2] sm:text-2xl">{displayName}</h2>
+                  <span className="inline-flex items-center gap-1 rounded-full border border-[#34D399]/30 bg-[#34D399]/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#6EE7B7]">
+                    <ShieldCheck className="size-3" /> Verified
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-[#9AA9A0]">
+                  <span className="inline-flex min-w-0 items-center gap-1.5"><Mail className="size-3.5 shrink-0 text-[#718178]" /><span className="truncate">{email}</span></span>
+                  <span className="inline-flex items-center gap-1.5"><MapPin className="size-3.5 shrink-0 text-[#718178]" />{farmLocation === 'Location not set' ? 'Location not set' : farmLocation}</span>
+                  {profilePhone.trim() && <span className="inline-flex items-center gap-1.5"><Phone className="size-3.5 shrink-0 text-[#718178]" />{profilePhone}</span>}
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[#24372D] bg-[#0B1511]/60 px-2.5 py-1 text-[10px] font-semibold text-[#C4D0C9]"><Beef className="size-3 text-[#6EE7B7]" /> {primarySpecies}</span>
+                  {farmName.trim() && <span className="inline-flex items-center gap-1.5 rounded-full border border-[#24372D] bg-[#0B1511]/60 px-2.5 py-1 text-[10px] font-semibold text-[#C4D0C9]"><Warehouse className="size-3 text-[#67E8F9]" /> {farmName}</span>}
+                </div>
+              </div>
+            </div>
+            <div className="flex shrink-0 flex-col items-start gap-3 rounded-md border border-[#24372D] bg-[#0B1511]/60 px-4 py-3 sm:items-end">
+              <div className="flex items-center gap-3 sm:flex-row-reverse">
+                <div className="relative flex size-14 items-center justify-center">
+                  <svg viewBox="0 0 36 36" className="size-14 -rotate-90">
+                    <circle cx="18" cy="18" r="15.5" fill="none" stroke="#24372D" strokeWidth="3" />
+                    <circle cx="18" cy="18" r="15.5" fill="none" stroke={profileCompletion === 100 ? '#34D399' : '#22D3EE'} strokeWidth="3" strokeLinecap="round" strokeDasharray={`${(profileCompletion / 100) * 97.4} 97.4`} className="transition-all duration-500" />
+                  </svg>
+                  <span className="absolute text-[11px] font-black text-[#E7EFEA]">{profileCompletion}%</span>
+                </div>
+                <div className="sm:text-right">
+                  <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-[#718178]">Profile strength</p>
+                  <p className="text-xs font-semibold text-[#C4D0C9]">{profileCompletion === 100 ? 'All set!' : nextMissing ? `Add ${nextMissing.toLowerCase()}` : 'Looking good'}</p>
+                </div>
+              </div>
+              <p className="inline-flex items-center gap-2 text-sm font-bold text-[#E7EFEA]"><Sprout className="size-4 text-[#6EE7B7]" /> Farmer</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Quick stats */}
+        <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {profileStats.map((stat) => (
+            <div key={stat.label} className="rounded-lg border border-[#24372D] bg-[#111D18] p-4">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#829189]">{stat.label}</p>
+                <span className={`flex size-8 items-center justify-center rounded-md border ${toneRing[stat.tone]}`}><stat.icon className="size-4" /></span>
+              </div>
+              <p className="text-2xl font-black leading-none tracking-tight text-[#F0F5F2]">{stat.value}</p>
+              <p className="mt-1.5 text-[10px] text-[#829189]">{stat.detail}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Editable details + side cards */}
+        <form onSubmit={handleSaveProfile} className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
+          <Panel title="Personal information" icon={UserRound}>
+            <p className="mb-4 text-xs leading-relaxed text-[#829189]">Update the details shown across your dashboard. Your email is tied to your secure sign-in.</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block text-xs font-semibold text-[#C4D0C9]">
+                Full name
+                <span className="relative mt-2 block">
+                  <UserRound className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#596A60]" />
+                  <input name="name" value={profileName} onChange={(e) => setProfileName(e.target.value)} className="h-11 w-full rounded-md border border-[#2A4033] bg-[#0B1511] pl-9 pr-3 text-sm font-normal text-[#E7EFEA] outline-none transition focus:border-[#34D399] focus:ring-2 focus:ring-[#34D399]/15" />
+                </span>
+              </label>
+              <label className="block text-xs font-semibold text-[#C4D0C9]">
+                Phone number
+                <span className="relative mt-2 block">
+                  <Phone className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#596A60]" />
+                  <input name="phone" type="tel" inputMode="tel" value={profilePhone} onChange={(e) => setProfilePhone(e.target.value)} placeholder="e.g. 0712 345 678" className="h-11 w-full rounded-md border border-[#2A4033] bg-[#0B1511] pl-9 pr-3 text-sm font-normal text-[#E7EFEA] outline-none transition placeholder:text-[#596A60] focus:border-[#34D399] focus:ring-2 focus:ring-[#34D399]/15" />
+                </span>
+              </label>
+              <label className="block text-xs font-semibold text-[#C4D0C9]">
+                Farm / ranch name
+                <span className="relative mt-2 block">
+                  <Warehouse className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#596A60]" />
+                  <input name="farmName" value={farmName} onChange={(e) => setFarmName(e.target.value)} placeholder="e.g. Olerai Ranch" className="h-11 w-full rounded-md border border-[#2A4033] bg-[#0B1511] pl-9 pr-3 text-sm font-normal text-[#E7EFEA] outline-none transition placeholder:text-[#596A60] focus:border-[#34D399] focus:ring-2 focus:ring-[#34D399]/15" />
+                </span>
+              </label>
+              <label className="block text-xs font-semibold text-[#C4D0C9]">
+                County / location
+                <span className="relative mt-2 block">
+                  <MapPin className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#596A60]" />
+                  <input name="location" value={farmLocation} onChange={(e) => setFarmLocation(e.target.value)} placeholder="e.g. Kericho County" className="h-11 w-full rounded-md border border-[#2A4033] bg-[#0B1511] pl-9 pr-3 text-sm font-normal text-[#E7EFEA] outline-none transition placeholder:text-[#596A60] focus:border-[#34D399] focus:ring-2 focus:ring-[#34D399]/15" />
+                </span>
+              </label>
+              <label className="block text-xs font-semibold text-[#C4D0C9] sm:col-span-2">
+                Primary livestock
+                <span className="relative mt-2 block">
+                  <Beef className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#596A60]" />
+                  <select name="primarySpecies" value={primarySpecies} onChange={(e) => setPrimarySpecies(e.target.value)} className="h-11 w-full appearance-none rounded-md border border-[#2A4033] bg-[#0B1511] pl-9 pr-3 text-sm font-normal text-[#E7EFEA] outline-none transition focus:border-[#34D399] focus:ring-2 focus:ring-[#34D399]/15">
+                    {['Cattle', 'Goat', 'Sheep', 'Pig', 'Poultry', 'Mixed'].map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-[#596A60]" />
+                </span>
+              </label>
+              <label className="block text-xs font-semibold text-[#C4D0C9] sm:col-span-2">
+                About your farm
+                <textarea name="bio" rows={3} value={profileBio} onChange={(e) => setProfileBio(e.target.value)} placeholder="A short note buyers and vets will see — e.g. a family-run dairy farm focused on healthy, well-kept herds." className="mt-2 w-full resize-none rounded-md border border-[#2A4033] bg-[#0B1511] px-3 py-2 text-sm font-normal text-[#E7EFEA] outline-none transition placeholder:text-[#596A60] focus:border-[#34D399] focus:ring-2 focus:ring-[#34D399]/15" />
+              </label>
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-semibold text-[#C4D0C9]">
+                  Email address
+                  <span className="relative mt-2 block">
+                    <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#596A60]" />
+                    <input name="email" type="email" value={email} readOnly className="h-11 w-full rounded-md border border-[#2A4033] bg-[#0B1511] pl-9 pr-3 text-sm font-normal text-[#E7EFEA] outline-none read-only:opacity-60" />
+                  </span>
+                  <span className="mt-1.5 block text-[10px] font-normal text-[#718178]">Managed through your secure sign-in and cannot be changed here.</span>
+                </label>
+              </div>
+            </div>
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[#24372D] pt-4">
+              <p className="inline-flex items-center gap-1.5 text-[10px] text-[#718178]"><Info className="size-3.5" /> Saved to this session preview.</p>
+              <button type="submit" className="inline-flex min-h-10 items-center gap-2 rounded-md bg-[#34D399] px-5 text-sm font-bold text-[#07150F] transition-colors hover:bg-[#6EE7B7]">
+                <Check className="size-4" /> Save changes
+              </button>
+            </div>
+          </Panel>
+
+          <div className="grid gap-4">
+            <Panel title="Account & security" icon={ShieldCheck}>
+              <ul className="space-y-3">
+                <li className="flex items-start gap-3 rounded-md border border-[#24372D] bg-[#0B1511] p-3">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-md border border-[#34D399]/25 bg-[#34D399]/10 text-[#6EE7B7]"><ShieldCheck className="size-4" /></span>
+                  <span className="min-w-0"><span className="block text-xs font-bold text-[#E7EFEA]">Secure sign-in</span><span className="mt-0.5 block text-[10px] leading-relaxed text-[#829189]">Your session is protected with cookie-backed authentication.</span></span>
+                </li>
+                <li className="flex items-start gap-3 rounded-md border border-[#24372D] bg-[#0B1511] p-3">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-md border border-[#22D3EE]/25 bg-[#22D3EE]/10 text-[#67E8F9]"><Leaf className="size-4" /></span>
+                  <span className="min-w-0"><span className="block text-xs font-bold text-[#E7EFEA]">Your data stays yours</span><span className="mt-0.5 block text-[10px] leading-relaxed text-[#829189]">Animal, milk and treatment records are private to your account.</span></span>
+                </li>
+              </ul>
+            </Panel>
+
+            <Panel title="Workspace access" icon={Users}>
+              <div className="rounded-md border border-[#34D399]/20 bg-[#34D399]/[0.06] p-4">
+                <p className="text-sm font-bold text-[#E7EFEA]">Farmer workspace</p>
+                <p className="mt-1 text-xs leading-relaxed text-[#9AA9A0]">Role switching and multi-role billing connect after role configuration.</p>
+              </div>
+              <Link href="/portal#workspaces" className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-md border border-[#2A4033] px-3 text-xs font-semibold text-[#D3DED7] transition-colors hover:border-[#34D399] hover:text-[#6EE7B7]">Manage roles <ArrowRight className="size-3" /></Link>
+            </Panel>
+          </div>
+        </form>
+      </>
+    );
+  };
+
+  const handleSaveSettings = () => {
+    notify('Settings saved for this session.');
+  };
+
+  const renderSettings = () => {
+    const activeAlerts = Object.values(notifications).filter(Boolean).length;
+    return (
+      <>
+        <SectionHeading
+          eyebrow="ACCOUNT / PREFERENCES"
+          title="Settings"
+          description="Control alerts, regional formats, units, and how your workspace looks and behaves."
+          action={
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#34D399]/30 bg-[#34D399]/[0.07] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#6EE7B7]">
+              <Sparkles className="size-3.5" /> {activeAlerts}/4 alerts on
+            </span>
+          }
+        />
+
+        <div className="grid gap-4 xl:grid-cols-2">
+          <Panel title="Notifications" icon={Bell}>
+            <p className="mb-4 text-xs leading-relaxed text-[#829189]">Choose what you want to be alerted about across your ranch.</p>
+            {([
+              ['vaccination', 'Vaccination reminders', 'Get a reminder when herd care is due.'],
+              ['market', 'Marketplace inquiries', 'Be notified about buyer activity.'],
+              ['report', 'Weekly farm summary', 'Receive a weekly productivity recap.'],
+              ['weather', 'Weather alerts', 'See local forecast notices.'],
+            ] as const).map(([key, title, note]) => <ToggleRow key={key} title={title} note={note} checked={notifications[key]} onChange={checked => setNotifications(current => ({ ...current, [key]: checked }))} />)}
+          </Panel>
+
+          <Panel title="Language & region" icon={Globe}>
+            <p className="mb-4 text-xs leading-relaxed text-[#829189]">Set how dates, currency, and text appear across the app.</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block text-xs font-semibold text-[#C4D0C9]">
+                Language
+                <span className="relative mt-2 block">
+                  <Globe className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#596A60]" />
+                  <select value={language} onChange={(e) => setLanguage(e.target.value)} className="h-11 w-full appearance-none rounded-md border border-[#2A4033] bg-[#0B1511] pl-9 pr-3 text-sm font-normal text-[#E7EFEA] outline-none transition focus:border-[#34D399] focus:ring-2 focus:ring-[#34D399]/15">
+                    <option>English</option>
+                    <option>Kiswahili</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-[#596A60]" />
+                </span>
+              </label>
+              <label className="block text-xs font-semibold text-[#C4D0C9]">
+                Currency
+                <span className="relative mt-2 block">
+                  <Coins className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#596A60]" />
+                  <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="h-11 w-full appearance-none rounded-md border border-[#2A4033] bg-[#0B1511] pl-9 pr-3 text-sm font-normal text-[#E7EFEA] outline-none transition focus:border-[#34D399] focus:ring-2 focus:ring-[#34D399]/15">
+                    <option value="KSh">Kenyan Shilling (KSh)</option>
+                    <option value="USD">US Dollar (USD)</option>
+                    <option value="EUR">Euro (EUR)</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-[#596A60]" />
+                </span>
+              </label>
+            </div>
+            <div className="mt-4 flex items-center gap-2 rounded-md border border-[#24372D] bg-[#0B1511] p-3 text-[10px] text-[#829189]">
+              <MapPin className="size-3.5 shrink-0 text-[#718178]" /> Region defaults to Kenya · East Africa Time (EAT).
+            </div>
+          </Panel>
+
+          <Panel title="Units & measurements" icon={Ruler}>
+            <p className="mb-4 text-xs leading-relaxed text-[#829189]">Choose how milk and animal weights are displayed.</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block text-xs font-semibold text-[#C4D0C9]">
+                Milk volume
+                <span className="relative mt-2 block">
+                  <Milk className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#596A60]" />
+                  <select value={units.milk} onChange={(e) => setUnits(current => ({ ...current, milk: e.target.value }))} className="h-11 w-full appearance-none rounded-md border border-[#2A4033] bg-[#0B1511] pl-9 pr-3 text-sm font-normal text-[#E7EFEA] outline-none transition focus:border-[#34D399] focus:ring-2 focus:ring-[#34D399]/15">
+                    <option>Litres</option>
+                    <option>Gallons</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-[#596A60]" />
+                </span>
+              </label>
+              <label className="block text-xs font-semibold text-[#C4D0C9]">
+                Weight
+                <span className="relative mt-2 block">
+                  <Ruler className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#596A60]" />
+                  <select value={units.weight} onChange={(e) => setUnits(current => ({ ...current, weight: e.target.value }))} className="h-11 w-full appearance-none rounded-md border border-[#2A4033] bg-[#0B1511] pl-9 pr-3 text-sm font-normal text-[#E7EFEA] outline-none transition focus:border-[#34D399] focus:ring-2 focus:ring-[#34D399]/15">
+                    <option>Kilograms (kg)</option>
+                    <option>Pounds (lb)</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-[#596A60]" />
+                </span>
+              </label>
+            </div>
+          </Panel>
+
+          <Panel title="Appearance" icon={Palette}>
+            <div className="space-y-4">
+              <div>
+                <span className="text-xs font-semibold text-[#C4D0C9]">Layout density</span>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  {(['Comfortable', 'Compact'] as const).map((option) => (
+                    <button key={option} type="button" onClick={() => setAppearance(current => ({ ...current, density: option }))} className={`min-h-11 rounded-md border px-3 text-xs font-semibold transition-colors ${appearance.density === option ? 'border-[#34D399]/60 bg-[#34D399]/15 text-[#6EE7B7]' : 'border-[#2A4033] bg-[#0B1511] text-[#9AA9A0] hover:text-white'}`}>
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <ToggleRow title="Reduce motion" note="Minimise animations and transitions across the dashboard." checked={appearance.reduceMotion} onChange={checked => setAppearance(current => ({ ...current, reduceMotion: checked }))} />
+            </div>
+          </Panel>
+
+          <Panel title="Privacy & data" icon={Eye}>
+            <ToggleRow title="Public farm profile" note="Allow buyers and vets to see your farm name and location." checked={privacy.publicProfile} onChange={checked => setPrivacy(current => ({ ...current, publicProfile: checked }))} />
+            <ToggleRow title="Share anonymised insights" note="Help improve Olerai with aggregated, non-identifying usage data." checked={privacy.shareAggregate} onChange={checked => setPrivacy(current => ({ ...current, shareAggregate: checked }))} />
+            <ToggleRow title="Personalised suggestions" note="Use your records to tailor tips and marketplace recommendations." checked={dataSharing} onChange={setDataSharing} />
+            <div className="mt-4 flex items-start gap-2.5 rounded-md border border-[#22D3EE]/25 bg-[#22D3EE]/[0.06] p-3 text-[10px] leading-relaxed text-[#67E8F9]">
+              <ShieldCheck className="mt-0.5 size-4 shrink-0" /> Your animal, milk, and treatment records always stay private to your account.
+            </div>
+          </Panel>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#24372D] bg-[#111D18] p-4">
+          <p className="inline-flex items-center gap-2 text-xs text-[#829189]"><Info className="size-4" /> Preferences apply to this session preview.</p>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={() => notify('Preferences reset to defaults.')} className="inline-flex min-h-10 items-center gap-2 rounded-md border border-[#2A4033] px-4 text-xs font-semibold text-[#C4D0C9] transition-colors hover:border-[#FB7185]/50 hover:text-[#FDA4AF]">
+              <RotateCcw className="size-4" /> Reset
+            </button>
+            <button type="button" onClick={handleSaveSettings} className="inline-flex min-h-10 items-center gap-2 rounded-md bg-[#34D399] px-5 text-sm font-bold text-[#07150F] transition-colors hover:bg-[#6EE7B7]">
+              <Check className="size-4" /> Save settings
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  };
 
   const renderDialog = () => {
     if (!dialog) return null;
