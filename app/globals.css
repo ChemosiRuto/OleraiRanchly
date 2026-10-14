@@ -33,3 +33,22 @@ body {
   animation: fade-in-up 0.8s ease-out forwards;
 }
 
+@keyframes milk-draw {
+  from { stroke-dashoffset: 1500; }
+  to { stroke-dashoffset: 0; }
+}
+.milk-area-line {
+  stroke-dasharray: 1500;
+  stroke-dashoffset: 1500;
+  animation: milk-draw 1.2s ease-out forwards;
+}
+@keyframes milk-pulse {
+  0% { transform: scale(1); opacity: 0.7; }
+  70%, 100% { transform: scale(2.6); opacity: 0; }
+}
+.milk-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: milk-pulse 1.8s ease-out infinite;
+}
+

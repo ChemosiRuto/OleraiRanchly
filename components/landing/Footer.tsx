@@ -1,4 +1,7 @@
-import * as Icons from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { FaFacebookF, FaLinkedinIn, FaTiktok, FaXTwitter } from 'react-icons/fa6';
+import logo from '../../images/logoF.png';
 
 export default function Footer() {
   const links = {
@@ -8,26 +11,22 @@ export default function Footer() {
     Legal: ['Privacy policy', 'Terms of service', 'Data protection', 'Cookie policy'],
   };
 
-  // Safe accessor to avoid build-time errors
-  const Icon = (name: string) => {
-    const Component = (Icons as any)[name];
-    return Component ? <Component className="w-5 h-5" /> : null;
-  };
-
   return (
     <footer className="text-emerald-100 py-20" style={{ backgroundColor: '#004700' }}>
-      <div className="container mx-auto px-4 grid md:grid-cols-5 gap-16">
-        <div className="md:col-span-1">
-          <h2 className="text-xl font-bold text-white mb-6">Olerai<span style={{ color: '#E49B0F' }}>Ranchly</span></h2>
+      <div className="container mx-auto px-4 grid md:grid-cols-6 gap-16">
+        <div className="md:col-span-2">
+          <Link href="/" aria-label="Olerai Ranchly home" className="mb-6 inline-flex items-center gap-3">
+            <Image src={logo} alt="" priority className="size-20 shrink-0 rounded-full bg-[#FFF1C7] p-2 ring-2 ring-[#E49B0F] object-contain" />
+            <span className="text-2xl font-bold text-black">Olerai<span className="text-[#E49B0F]">Ranchly</span></span>
+          </Link>
           <p className="text-sm leading-relaxed text-emerald-100/80 mb-6">
             Digitizing livestock farming for rural farmers, vets and agro-chemists across Kenya — turning traditional practice into a data-driven agribusiness.
           </p>
-          {/* Icons moved below the paragraph */}
           <div className="flex gap-4">
-            <a href="#" className="w-10 h-10 rounded-full bg-emerald-950 flex items-center justify-center hover:bg-[#E49B0F] hover:text-black transition-colors">{Icon('Twitter')}</a>
-            <a href="#" className="w-10 h-10 rounded-full bg-emerald-950 flex items-center justify-center hover:bg-[#E49B0F] hover:text-black transition-colors">{Icon('Facebook')}</a>
-            <a href="#" className="w-10 h-10 rounded-full bg-emerald-950 flex items-center justify-center hover:bg-[#E49B0F] hover:text-black transition-colors">{Icon('Linkedin')}</a>
-            <a href="#" className="w-10 h-10 rounded-full bg-emerald-950 flex items-center justify-center hover:bg-[#E49B0F] hover:text-black transition-colors">{Icon('MessageCircle')}</a>
+            <a href="#" aria-label="Facebook" className="flex size-10 items-center justify-center rounded-full bg-emerald-950 text-[#E49B0F] transition-colors hover:bg-[#E49B0F] hover:text-black"><FaFacebookF aria-hidden="true" className="size-4" /></a>
+            <a href="#" aria-label="X (Twitter)" className="flex size-10 items-center justify-center rounded-full bg-emerald-950 text-[#E49B0F] transition-colors hover:bg-[#E49B0F] hover:text-black"><FaXTwitter aria-hidden="true" className="size-4" /></a>
+            <a href="#" aria-label="LinkedIn" className="flex size-10 items-center justify-center rounded-full bg-emerald-950 text-[#E49B0F] transition-colors hover:bg-[#E49B0F] hover:text-black"><FaLinkedinIn aria-hidden="true" className="size-4" /></a>
+            <a href="#" aria-label="TikTok" className="flex size-10 items-center justify-center rounded-full bg-emerald-950 text-[#E49B0F] transition-colors hover:bg-[#E49B0F] hover:text-black"><FaTiktok aria-hidden="true" className="size-4" /></a>
           </div>
         </div>
         {Object.entries(links).map(([title, items]) => (

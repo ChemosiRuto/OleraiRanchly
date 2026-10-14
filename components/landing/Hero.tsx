@@ -1,6 +1,6 @@
-import { Button } from '@/components/ui/button';
 import { Zap } from 'lucide-react';
 import Image from 'next/image';
+import StartFreeTrigger from '@/components/auth/StartFreeTrigger';
 
 export default function Hero() {
   return (
@@ -22,7 +22,7 @@ export default function Hero() {
       <div className="container mx-auto px-4 text-center relative z-10">
         <div className="inline-flex items-center gap-2 bg-emerald-900/50 backdrop-blur px-4 py-1.5 rounded-full mb-8 border border-emerald-700/50">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
-          <span className="text-sm font-semibold text-emerald-100 uppercase tracking-wider text-xs">Kenya's #1 Livestock Platform</span>
+          <span className="text-sm font-semibold text-emerald-100 uppercase tracking-wider text-xs">Kenya&apos;s #1 Livestock Platform</span>
         </div>
 
         <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-8 max-w-4xl mx-auto tracking-tighter leading-tight drop-shadow-lg">
@@ -36,9 +36,9 @@ export default function Hero() {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Button size="lg" className="bg-[#E49B0F] hover:bg-[#E49B0F]0 text-black gap-2 h-16 px-10 text-lg font-bold w-full sm:w-auto shadow-2xl hover:shadow-xl transition-all rounded-full">
+          <StartFreeTrigger className="bg-[#E49B0F] hover:bg-[#F3C96A] text-black gap-2 h-16 px-10 text-lg font-bold w-full sm:w-auto shadow-2xl hover:shadow-xl transition-all rounded-full">
             <Zap className="w-5 h-5 fill-black text-black" /> Start Free — Takes 30 Seconds
-          </Button>
+          </StartFreeTrigger>
         </div>
       </div>
     </section>
